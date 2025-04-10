@@ -242,9 +242,204 @@ def create_category(current_user):
         }
     }), 201
 
+# Data initialization function
+def populate_db():
+    # Create categories
+    categories_data = [
+        {"id": 1, "name": "Living Room"},
+        {"id": 2, "name": "Bedroom"},
+        {"id": 3, "name": "Dining Room"},
+        {"id": 4, "name": "Office"},
+        {"id": 5, "name": "Outdoor"},
+        {"id": 6, "name": "Kitchen"},
+        {"id": 7, "name": "Bathroom"}
+    ]
+    
+    # Create products
+    products_data = [
+        {
+            "id": 1,
+            "name": "Modern Sectional Sofa",
+            "description": "A spacious L-shaped sectional sofa with plush cushions and durable fabric upholstery. Perfect for family gatherings and entertaining guests.",
+            "price": 1299.99,
+            "stock_quantity": 15,
+            "image_url": "https://m.media-amazon.com/images/I/91x5nH56ZZL.jpg",
+            "category_id": 1
+        },
+        {
+            "id": 2,
+            "name": "Leather Recliner",
+            "description": "Premium leather recliner with adjustable positions and built-in cup holders. Offers exceptional comfort for relaxation.",
+            "price": 849.99,
+            "stock_quantity": 8,
+            "image_url": "https://m.media-amazon.com/images/I/71xwaQExooL._AC_SL1500_.jpg",
+            "category_id": 1
+        },
+        {
+            "id": 3,
+            "name": "Coffee Table with Storage",
+            "description": "Elegant wooden coffee table with hidden storage compartments. Features a lift-top design for versatile use.",
+            "price": 349.99,
+            "stock_quantity": 22,
+            "image_url": "https://m.media-amazon.com/images/I/81WeJ37mUaL._AC_SL1500_.jpg",
+            "category_id": 1
+        },
+        {
+            "id": 4,
+            "name": "King Size Platform Bed",
+            "description": "Contemporary platform bed with integrated headboard and solid wood frame. No box spring required.",
+            "price": 799.99,
+            "stock_quantity": 12,
+            "image_url": "https://m.media-amazon.com/images/I/71VWGn1Dx6L._AC_SL1500_.jpg",
+            "category_id": 2
+        },
+        {
+            "id": 5,
+            "name": "Memory Foam Mattress",
+            "description": "Queen size memory foam mattress with cooling gel technology. Provides optimal support and temperature regulation for quality sleep.",
+            "price": 699.99,
+            "stock_quantity": 30,
+            "image_url": "https://m.media-amazon.com/images/I/91m32IzW-lL._AC_SL1500_.jpg",
+            "category_id": 2
+        },
+        {
+            "id": 6,
+            "name": "Nightstand with Charging Station",
+            "description": "Compact bedside table with built-in USB ports and wireless charging pad. Includes two drawers for storage.",
+            "price": 199.99,
+            "stock_quantity": 25,
+            "image_url": "https://m.media-amazon.com/images/I/711fVS2ix3L._AC_SL1500_.jpg",
+            "category_id": 2
+        },
+        {
+            "id": 7,
+            "name": "Extending Dining Table",
+            "description": "Solid oak dining table with extension leaves. Can accommodate 6-10 people when fully extended.",
+            "price": 899.99,
+            "stock_quantity": 10,
+            "image_url": "https://m.media-amazon.com/images/I/71hRED5bl7L._AC_SL1200_.jpg",
+            "category_id": 3
+        },
+        {
+            "id": 8,
+            "name": "Upholstered Dining Chairs (Set of 4)",
+            "description": "Set of four dining chairs with padded seats and backrests. Features sturdy wooden legs and elegant fabric upholstery.",
+            "price": 499.99,
+            "stock_quantity": 18,
+            "image_url": "https://m.media-amazon.com/images/I/71aJAdltM+L._AC_SL1500_.jpg",
+            "category_id": 3
+        },
+        {
+            "id": 9,
+            "name": "China Cabinet",
+            "description": "Traditional china cabinet with glass doors and interior lighting. Perfect for displaying fine dinnerware and collectibles.",
+            "price": 1099.99,
+            "stock_quantity": 5,
+            "image_url": "https://m.media-amazon.com/images/I/71fyIMN56kL._AC_SL1500_.jpg",
+            "category_id": 3
+        },
+        {
+            "id": 10,
+            "name": "Executive Desk",
+            "description": "Spacious executive desk with multiple drawers and cable management system. Made from sustainable hardwood with a premium finish.",
+            "price": 749.99,
+            "stock_quantity": 7,
+            "image_url": "https://m.media-amazon.com/images/I/81Lu6JijCHL._AC_SL1500_.jpg",
+            "category_id": 4
+        },
+        {
+            "id": 11,
+            "name": "Ergonomic Office Chair",
+            "description": "Fully adjustable office chair with lumbar support and breathable mesh back. Designed for all-day comfort.",
+            "price": 299.99,
+            "stock_quantity": 20,
+            "image_url": "https://m.media-amazon.com/images/I/81GfB85DaoL._AC_SL1500_.jpg",
+            "category_id": 4
+        },
+        {
+            "id": 12,
+            "name": "Bookshelf with Cabinet",
+            "description": "Versatile bookshelf with open shelving and closed cabinet storage. Perfect for organizing books and office supplies.",
+            "price": 249.99,
+            "stock_quantity": 15,
+            "image_url": "https://m.media-amazon.com/images/I/7137bps9j7L._AC_SL1500_.jpg",
+            "category_id": 4
+        },
+        {
+            "id": 13,
+            "name": "Patio Dining Set",
+            "description": "Weather-resistant 6-piece patio dining set including table, chairs, and umbrella. Perfect for outdoor entertaining.",
+            "price": 899.99,
+            "stock_quantity": 8,
+            "image_url": "https://m.media-amazon.com/images/I/81-0hiIiIhL._AC_SL1500_.jpg",
+            "category_id": 5
+        },
+        {
+            "id": 14,
+            "name": "Adirondack Chair",
+            "description": "Classic Adirondack chair made from weather-resistant recycled plastic. Maintenance-free and available in multiple colors.",
+            "price": 179.99,
+            "stock_quantity": 30,
+            "image_url": "https://m.media-amazon.com/images/I/716R9MUVnKL._AC_SL1500_.jpg",
+            "category_id": 5
+        },
+        {
+            "id": 15,
+            "name": "Outdoor Storage Bench",
+            "description": "Multipurpose outdoor bench with hidden storage compartment. Ideal for patio cushions and garden accessories.",
+            "price": 249.99,
+            "stock_quantity": 12,
+            "image_url": "https://m.media-amazon.com/images/I/81F8ilSpD2L._AC_SL1500_.jpg",
+            "category_id": 5
+        },
+        {
+            "id": 16,
+            "name": "Kitchen Cabinet Set",
+            "description": "Complete set of modern kitchen cabinets with soft-close drawers and elegant hardware. Includes upper and lower cabinets.",
+            "price": 2499.99,
+            "stock_quantity": 5,
+            "image_url": "https://m.media-amazon.com/images/I/716d9+An+pL._AC_SL1500_.jpg",
+            "category_id": 6
+        }
+    ]
+
+    try:
+        # First, delete existing data
+        Product.query.delete()
+        Category.query.delete()
+        db.session.commit()
+
+        # Add categories
+        for cat_data in categories_data:
+            category = Category(id=cat_data['id'], name=cat_data['name'])
+            db.session.add(category)
+        db.session.commit()
+
+        # Add products
+        for prod_data in products_data:
+            product = Product(
+                id=prod_data['id'],
+                name=prod_data['name'],
+                description=prod_data['description'],
+                price=prod_data['price'],
+                stock_quantity=prod_data['stock_quantity'],
+                image_url=prod_data['image_url'],
+                category_id=prod_data['category_id']
+            )
+            db.session.add(product)
+        db.session.commit()
+
+        print("Database populated successfully!")
+        return True
+    except Exception as e:
+        print(f"Error populating database: {str(e)}")
+        db.session.rollback()
+        return False
+
 # Initialize DB
 with app.app_context():
     db.create_all()
+    populate_db()  # Call the populate function after creating tables
 
 # Run the server
 if __name__ == '__main__':
