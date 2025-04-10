@@ -44,6 +44,18 @@ class Product(db.Model):
     image_url = db.Column(db.Text, nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    excerpt = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    date = db.Column(db.String(10), nullable=False)
+    author = db.Column(db.String(100), nullable=False)
+    read_time = db.Column(db.String(20), nullable=False)
+    image = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    tags = db.Column(db.JSON, nullable=False)
+
 # Authentication Decorator
 def token_required(f):
     @wraps(f)
@@ -244,6 +256,101 @@ def create_category(current_user):
         }
     }), 201
 
+# Blog Routes
+@app.route('/blog/posts', methods=['GET'])
+def get_blog_posts():
+    category = request.args.get('category')
+    tag = request.args.get('tag')
+    
+    query = BlogPost.query
+    
+    if category:
+        query = query.filter_by(category=category)
+    
+    if tag:
+        query = query.filter(BlogPost.tags.contains([tag]))
+    
+    posts = query.order_by(BlogPost.date.desc()).all()
+    
+    return jsonify([{
+        "id": post.id,
+        "title": post.title,
+        "excerpt": post.excerpt,
+        "content": post.content,
+        "date": post.date,
+        "author": post.author,
+        "readTime": post.read_time,
+        "image": post.image,
+        "category": post.category,
+        "tags": post.tags
+    } for post in posts]), 200
+
+@app.route('/blog/posts/<int:post_id>', methods=['GET'])
+def get_blog_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    
+    return jsonify({
+        "id": post.id,
+        "title": post.title,
+        "excerpt": post.excerpt,
+        "content": post.content,
+        "date": post.date,
+        "author": post.author,
+        "readTime": post.read_time,
+        "image": post.image,
+        "category": post.category,
+        "tags": post.tags
+    }), 200
+
+@app.route('/blog/posts', methods=['POST'])
+@admin_required
+def create_blog_post(current_user):
+    data = request.get_json()
+    
+    new_post = BlogPost(
+        title=data['title'],
+        excerpt=data['excerpt'],
+        content=data['content'],
+        date=data['date'],
+        author=data['author'],
+        read_time=data['readTime'],
+        image=data['image'],
+        category=data['category'],
+        tags=data['tags']
+    )
+    
+    db.session.add(new_post)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Blog post created successfully",
+        "post": {
+            "id": new_post.id,
+            "title": new_post.title,
+            "excerpt": new_post.excerpt,
+            "content": new_post.content,
+            "date": new_post.date,
+            "author": new_post.author,
+            "readTime": new_post.read_time,
+            "image": new_post.image,
+            "category": new_post.category,
+            "tags": new_post.tags
+        }
+    }), 201
+
+@app.route('/blog/categories', methods=['GET'])
+def get_blog_categories():
+    categories = db.session.query(BlogPost.category).distinct().all()
+    return jsonify([category[0] for category in categories]), 200
+
+@app.route('/blog/tags', methods=['GET'])
+def get_blog_tags():
+    posts = BlogPost.query.all()
+    all_tags = set()
+    for post in posts:
+        all_tags.update(post.tags)
+    return jsonify(list(all_tags)), 200
+
 # Data initialization function
 def populate_db():
     # Create categories
@@ -405,10 +512,87 @@ def populate_db():
         }
     ]
 
+    # Create blog posts
+    blog_posts_data = [
+        {
+            "id": 1,
+            "title": "Sustainable Living Tips",
+            "excerpt": "Simple ways to reduce your environmental impact in daily life. Learn how small changes in your daily routine can make a big difference for our planet.",
+            "content": "Living sustainably doesn't have to be complicated or overwhelming. Small changes in our daily routines can collectively make a significant impact on our environment. Here are some practical tips to get started:\n\n1. Reduce Single-Use Plastics\n- Carry reusable shopping bags\n- Use a refillable water bottle\n- Invest in reusable food containers\n\n2. Save Energy at Home\n- Switch to LED bulbs\n- Unplug electronics when not in use\n- Use natural light when possible\n\n3. Minimize Water Waste\n- Fix leaky faucets\n- Install water-efficient fixtures\n- Collect rainwater for plants\n\n4. Practice Sustainable Shopping\n- Buy local and seasonal products\n- Choose products with minimal packaging\n- Support eco-friendly brands\n\nRemember, sustainable living is a journey, not a destination. Start with small changes and gradually incorporate more eco-friendly practices into your lifestyle.",
+            "date": "2024-03-20",
+            "author": "Emma Green",
+            "read_time": "5 min",
+            "image": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1313&q=80",
+            "category": "Lifestyle",
+            "tags": ["sustainability", "eco-friendly", "lifestyle", "environment"]
+        },
+        {
+            "id": 2,
+            "title": "Understanding Carbon Footprint",
+            "excerpt": "Learn how your daily choices affect the environment and what steps you can take to reduce your carbon footprint for a more sustainable future.",
+            "content": "Your carbon footprint is the total amount of greenhouse gases generated by your actions. Understanding and reducing it is crucial for combating climate change.\n\nWhat Contributes to Your Carbon Footprint?\n\n1. Transportation\n- Daily commuting\n- Air travel\n- Personal vehicle use\n\n2. Home Energy Use\n- Heating and cooling\n- Electricity consumption\n- Appliance efficiency\n\n3. Food Choices\n- Meat consumption\n- Food waste\n- Packaging waste\n\n4. Consumer Habits\n- Fast fashion\n- Electronic devices\n- Single-use products\n\nHow to Reduce Your Carbon Footprint:\n\n1. Choose sustainable transportation options\n2. Improve home energy efficiency\n3. Adopt a plant-based diet\n4. Practice mindful consumption\n\nCalculating and reducing your carbon footprint is an ongoing process that requires awareness and commitment to sustainable choices.",
+            "date": "2024-03-18",
+            "author": "Dr. Michael Chen",
+            "read_time": "7 min",
+            "image": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+            "category": "Education",
+            "tags": ["carbon footprint", "climate change", "sustainability", "environment"]
+        },
+        {
+            "id": 3,
+            "title": "Eco-Friendly Home Decor Ideas",
+            "excerpt": "Discover creative ways to decorate your home while being environmentally conscious. From upcycled furniture to sustainable materials.",
+            "content": "Creating an eco-friendly home doesn't mean sacrificing style. Here's how to make your space both beautiful and sustainable:\n\n1. Sustainable Materials\n- Bamboo furniture\n- Recycled glass decorations\n- Natural fiber textiles\n\n2. Upcycling Projects\n- Repurposed furniture\n- DIY art from reclaimed materials\n- Vintage decor items\n\n3. Indoor Plants\n- Air-purifying varieties\n- Vertical gardens\n- Herb gardens\n\n4. Energy-Efficient Lighting\n- LED fixtures\n- Natural light optimization\n- Solar-powered options\n\nTips for Sustainable Decorating:\n- Shop second-hand first\n- Choose quality over quantity\n- Support local artisans\n- Use non-toxic finishes and paints\n\nRemember that sustainable decor is about making conscious choices that benefit both your home and the environment.",
+            "date": "2024-03-15",
+            "author": "Sofia Martinez",
+            "read_time": "6 min",
+            "image": "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+            "category": "Interior Design",
+            "tags": ["interior design", "sustainable living", "home decor", "DIY"]
+        },
+        {
+            "id": 4,
+            "title": "The Rise of Sustainable Furniture",
+            "excerpt": "Explore the growing trend of sustainable furniture and how manufacturers are adopting eco-friendly practices in production.",
+            "content": "The furniture industry is undergoing a significant transformation as sustainability becomes a key focus. This shift is driven by both consumer demand and environmental necessity.\n\n1. Sustainable Materials\n- Reclaimed wood\n- Bamboo and fast-growing materials\n- Recycled metals and plastics\n\n2. Manufacturing Practices\n- Zero-waste production\n- Renewable energy usage\n- Local sourcing\n\n3. Circular Economy\n- Take-back programs\n- Furniture refurbishment\n- End-of-life recycling\n\n4. Industry Innovation\n- Bio-based materials\n- Modular design\n- 3D printing\n\nThe future of furniture manufacturing lies in sustainable practices that benefit both consumers and the environment. Companies leading this change are setting new standards for the industry.",
+            "date": "2024-03-12",
+            "author": "James Wilson",
+            "read_time": "8 min",
+            "image": "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80",
+            "category": "Industry News",
+            "tags": ["furniture", "sustainability", "manufacturing", "industry"]
+        },
+        {
+            "id": 5,
+            "title": "Zero Waste Living Guide",
+            "excerpt": "A comprehensive guide to starting your zero waste journey. Tips, tricks, and product recommendations for a waste-free lifestyle.",
+            "content": "Transitioning to a zero waste lifestyle is a powerful way to reduce your environmental impact. Here's your comprehensive guide to getting started:\n\n1. Kitchen Essentials\n- Reusable containers\n- Cloth produce bags\n- Composting system\n\n2. Bathroom Swaps\n- Bar soaps and shampoos\n- Bamboo toothbrush\n- Reusable cotton rounds\n\n3. Shopping Habits\n- Bulk store shopping\n- Farmers markets\n- Package-free stores\n\n4. Waste Reduction Strategies\n- Meal planning\n- Repair instead of replace\n- Digital over paper\n\nRemember that zero waste is about progress, not perfection. Every small change contributes to a larger environmental impact.",
+            "date": "2024-03-10",
+            "author": "Lisa Chang",
+            "read_time": "6 min",
+            "image": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1313&q=80",
+            "category": "Lifestyle",
+            "tags": ["zero waste", "sustainability", "lifestyle", "environment"]
+        },
+        {
+            "id": 6,
+            "title": "Sustainable Materials in Modern Design",
+            "excerpt": "An in-depth look at how sustainable materials are being incorporated into modern furniture design without compromising style.",
+            "content": "Modern design is embracing sustainability like never before, proving that eco-friendly materials can create stunning and functional pieces:\n\n1. Innovative Materials\n- Mycelium-based products\n- Ocean plastic furniture\n- Recycled composite materials\n\n2. Design Principles\n- Minimalist approach\n- Multi-functional pieces\n- Timeless aesthetics\n\n3. Material Processing\n- Low-impact manufacturing\n- Natural finishing techniques\n- Waste reduction methods\n\n4. Future Trends\n- Smart sustainable materials\n- Self-repairing surfaces\n- Biodegradable furniture\n\nThe fusion of sustainable materials with modern design is creating a new paradigm in furniture manufacturing, where style meets responsibility.",
+            "date": "2024-03-08",
+            "author": "Alex Rivera",
+            "read_time": "7 min",
+            "image": "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80",
+            "category": "Design",
+            "tags": ["design", "materials", "sustainability", "furniture"]
+        }
+    ]
+
     try:
         # First, delete existing data
         Product.query.delete()
         Category.query.delete()
+        BlogPost.query.delete()
         db.session.commit()
 
         # Add categories
@@ -429,6 +613,23 @@ def populate_db():
                 category_id=prod_data['category_id']
             )
             db.session.add(product)
+        db.session.commit()
+
+        # Add blog posts
+        for post_data in blog_posts_data:
+            post = BlogPost(
+                id=post_data['id'],
+                title=post_data['title'],
+                excerpt=post_data['excerpt'],
+                content=post_data['content'],
+                date=post_data['date'],
+                author=post_data['author'],
+                read_time=post_data['read_time'],
+                image=post_data['image'],
+                category=post_data['category'],
+                tags=post_data['tags']
+            )
+            db.session.add(post)
         db.session.commit()
 
         print("Database populated successfully!")
