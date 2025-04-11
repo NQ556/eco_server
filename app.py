@@ -56,6 +56,14 @@ class BlogPost(db.Model):
     category = db.Column(db.String(50), nullable=False)
     tags = db.Column(db.JSON, nullable=False)
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    post_id = db.Column(db.Integer, db.ForeignKey('blog_post.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    author = db.Column(db.String(100), nullable=False)
+
 # Authentication Decorator
 def token_required(f):
     @wraps(f)
@@ -351,6 +359,41 @@ def get_blog_tags():
         all_tags.update(post.tags)
     return jsonify(list(all_tags)), 200
 
+@app.route('/blog/posts/<int:post_id>/comments', methods=['GET'])
+def get_post_comments(post_id):
+    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.desc()).all()
+    return jsonify([{
+        "id": comment.id,
+        "content": comment.content,
+        "created_at": comment.created_at.isoformat(),
+        "author": comment.author,
+    } for comment in comments]), 200
+
+@app.route('/blog/posts/<int:post_id>/comments', methods=['POST'])
+@token_required
+def create_comment(current_user, post_id):
+    data = request.get_json()
+    
+    if not data.get('content'):
+        return jsonify({"message": "Comment content is required"}), 400
+    
+    new_comment = Comment(
+        content=data['content'],
+        post_id=post_id,
+        user_id=current_user.id,
+        author=current_user.username
+    )
+    
+    db.session.add(new_comment)
+    db.session.commit()
+    
+    return jsonify({
+        "id": new_comment.id,
+        "content": new_comment.content,
+        "created_at": new_comment.created_at.isoformat(),
+        "author": new_comment.author,
+    }), 201
+
 # Data initialization function
 def populate_db():
     # Create categories
@@ -593,6 +636,7 @@ def populate_db():
         Product.query.delete()
         Category.query.delete()
         BlogPost.query.delete()
+        Comment.query.delete()
         db.session.commit()
 
         # Add categories
